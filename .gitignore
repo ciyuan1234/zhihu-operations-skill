@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+*.tmp
+.DS_Store
+.idea/
+.vscode/
+*.png
+*.jpg
+*.jpeg
+*.log
+guard_state.json
+zhihu_guard_state.json
+test_*.json
+local_state/
