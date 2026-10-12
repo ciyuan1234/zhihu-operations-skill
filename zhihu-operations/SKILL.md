@@ -1,19 +1,19 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.0.0
+version: 1.1.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
 metadata:
   hermes:
-    tags: [zhihu, creator, social-media, anti-ai, publishing, operations]
+    tags: [zhihu, creator, social-media, anti-ai, publishing, operations, github-sync]
     category: social-media
 ---
 
 # Zhihu Operations Skill
 
-Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, 3-tier evidence gates, publishing cadence guardrails, and traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询).
+Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), and automated GitHub open-source synchronization.
 
 ## When to Use
 
@@ -23,12 +23,14 @@ Operate Zhihu (知乎) creator accounts for developer and technology verticals. 
 - Scoring potential questions (`scripts/question_evaluator.py`) to target high-traction, high-search-value answer candidates.
 - Applying the 3-Tier Evidence Standard (official docs -> reproducible benchmarks -> qualitative observations) to eliminate fabricated metrics.
 - Structuring monetization funnels while strictly keeping 致知计划 (pure traffic revenue) and affiliate cards physically separated.
+- Synchronizing local skill updates to the open-source GitHub repository (`ciyuan1234/zhihu-operations-skill`).
 - Don't use for: Salt fiction/storytelling, generic marketing ad spam, or paid upvote/shill rings (banned by platform).
 
 ## Prerequisites
 
 - Python 3.9+ (Python 3.10+ recommended) for linting, cadence guard, and evaluation scripts.
 - Platform account: Zhihu account (`zhihu.com`).
+- GitHub repository: `https://github.com/ciyuan1234/zhihu-operations-skill`.
 
 ## Quick Reference
 
@@ -44,6 +46,9 @@ python3 scripts/guard.py record-answer
 
 # Evaluate question traffic potential
 python3 scripts/question_evaluator.py --followers 1200 --answers 35 --views 150000
+
+# Trigger immediate manual sync to GitHub
+sync-skills
 ```
 
 ## Core Invariants & Rules
@@ -75,6 +80,11 @@ python3 scripts/question_evaluator.py --followers 1200 --answers 35 --views 1500
    - **付费咨询 (1-on-1 Consultation)**: Unlocked at Lv3. Peer debugging and configuration guidance (¥39-¥69).
    - **Lightweight Digital Assets**: Self-developed script packs and checklists (¥19-¥39). Assets must physically exist.
 
+6. **Automated GitHub Open-Source Synchronization**:
+   - Local skill changes are symlinked directly to the Git repository.
+   - The macOS LaunchAgent (`com.kite.skill-github-sync`) watches for modifications and runs tests before committing.
+   - Broken unit tests block auto-push to protect remote repository health.
+
 ## Detailed References
 
 - `references/wilson_ranking_and_algorithm.md`: Deep dive on Wilson score interval lower bound and upvote weighting.
@@ -104,16 +114,20 @@ python3 scripts/question_evaluator.py --followers 1200 --answers 35 --views 1500
 
 5. **Publishing & Recording**:
    - Publish through web or automated injection.
-   - Log timestamp: `python3 scripts/guard.py record-answer`.
+   - Log timestamp: `python3 scripts/guard.py record-answer`.\n
+6. **Synchronize Skill Updates**:
+   - When modifying rules, scripts, or references, changes are automatically pushed to GitHub by `com.kite.skill-github-sync` daemon upon test pass, or via `sync-skills`.
 
 ## Pitfalls
 
 - **Do not fabricate benchmark numbers**: Synthetic numbers like "提升了 3.8 倍" without real logs will be dismantled by Zhihu technical readers.
 - **Do not mix affiliate cards into 致知计划 answers**: Disqualifies the answer from traffic revenue share entirely.
 - **Do not use repetitive answer openings**: Wali/Wukong flags cross-answer templated patterns as automated AI farms.
+- **Do not break unit tests during skill editing**: Automated GitHub push executes `python3 -m unittest` pre-flight gate; broken tests abort auto-push to prevent pushing failing code.
 
 ## Verification
 
 - Linter passes clean: `python3 scripts/lint.py <draft>` exits with code 0.
-- Pacing gate confirms: `python3 scripts/guard.py check` returns `"allowed": true`.
+- Pacing gate confirms: `python3 scripts/guard.py check` returns `\"allowed\": true`.
 - Every quoted metric resolves to an official source or reproducible test.
+- Unit tests pass: `python3 -m unittest discover -s tests -p "test_*.py"` exits with code 0.
