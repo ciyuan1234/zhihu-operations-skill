@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.1.0
+version: 1.2.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -13,14 +13,16 @@ metadata:
 
 # Zhihu Operations Skill
 
-Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), and automated GitHub open-source synchronization.
+Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), automated deduplication gates, DraftJS paste event handling, and automated GitHub open-source synchronization.
 
 ## When to Use
 
 - Writing, reviewing, or editing Zhihu answers, articles, or thoughts in software, AI, or developer tooling.
 - Auditing draft answers against anti-AI standards (`scripts/lint.py`) to prevent content folding, account de-weighting, or Wali/Wukong automated penalty.
-- Checking publishing cadence and intervals (`scripts/guard.py`) to prevent spam flags (daily cap 1-2, minimum 6h gap, midnight blackout 00:00-07:00 CST).
-- Scoring potential questions (`scripts/question_evaluator.py`) to target high-traction, high-search-value answer candidates.
+- Checking publishing cadence and intervals (`scripts/guard.py`) to prevent spam flags (daily cap 1-3, minimum 4-6h gap, midnight blackout 00:00-07:00 CST).
+- Scoring potential questions (`scripts/question_evaluator.py`, `selector.py`) to target high-traction, high-search-value answer candidates.
+- Filtering out already-answered questions from candidate pools to prevent accidental answer overwrites.
+- Automating DraftJS editor input (answers, comments, and thoughts) using native `ClipboardEvent('paste')` synthesis.
 - Applying the 3-Tier Evidence Standard (official docs -> reproducible benchmarks -> qualitative observations) to eliminate fabricated metrics.
 - Structuring monetization funnels while strictly keeping 致知计划 (pure traffic revenue) and affiliate cards physically separated.
 - Synchronizing local skill updates to the open-source GitHub repository (`ciyuan1234/zhihu-operations-skill`).
@@ -63,24 +65,34 @@ sync-skills
    - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天"), and bolded tag lists (`- **性能：** ...`).
    - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, or closing question patterns across answers on the same account.
 
-3. **Three-Tier Evidence Standard (三级证据门禁)**:
+3. **Question Deduplication Gate (唯一回答门禁)**:
+   - Zhihu strictly allows only ONE answer per question per account.
+   - Automated question selectors must cross-reference `logs/run.jsonl` (published answers with status=ok) and queued drafts to exclude previously answered questions. Picking an answered question overwrites existing content or fails when locating the composer.
+
+4. **DraftJS & Synthetic Paste Pipeline (输入法合成事件门禁)**:
+   - Zhihu composer interfaces (answers, comments, and thoughts) use Draft.js `contenteditable`.
+   - Direct CDP text insertion (`Input.insertText` / `cmux browser type`) modifies DOM text without committing to React component state, leaving the submit button permanently disabled.
+   - Reliable automation must click the editor to mount toolbars, then dispatch a synthetic `ClipboardEvent('paste')` populated with `DataTransfer('text/plain')`.
+   - Verification of comments must query `/api/v4/comment_v5/answers/{aid}/root_comment` for author `url_token` rather than relying on ephemeral DOM disappearance.
+
+5. **Three-Tier Evidence Standard (三级证据门禁)**:
    - **Tier 1 (Official Documentation)**: Verified vendor specs and release notes.
    - **Tier 2 (Reproducible Benchmarks)**: Backed by real execution logs on disk. Any specific number (latency in seconds, token counts, pricing, speedup) must have a corresponding log. Never synthesize pseudo-precise metrics (e.g. "18.2秒", "71% 成功率").
    - **Tier 3 (Qualitative Observations)**: When exact measurement is absent, state findings qualitatively ("明显卡顿", "调用成本显著降低") rather than fabricating numbers.
 
-4. **Publishing Cadence Guard**:
-   - Daily answer limit: 1-2 per day.
-   - Minimum interval gap: Strictly >= 6 hours between answers.
+6. **Publishing Cadence Guard**:
+   - Daily answer limit: 1-3 per day (paced across golden windows).
+   - Minimum interval gap: Strictly >= 4 hours between answers.
    - Midnight blackout: 00:00–07:00 CST forbidden.
    - Cold-start window: The first 2 hours after publishing determine algorithmic survival.
 
-5. **Monetization Channel Physical Separation**:
+7. **Monetization Channel Physical Separation**:
    - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards ("好物推荐") or consultation cards. Maintain 80% pure technical answers.
    - **好物推荐 (Affiliate CPS)**: Dedicated 20% product recommendation answers.
    - **付费咨询 (1-on-1 Consultation)**: Unlocked at Lv3. Peer debugging and configuration guidance (¥39-¥69).
    - **Lightweight Digital Assets**: Self-developed script packs and checklists (¥19-¥39). Assets must physically exist.
 
-6. **Automated GitHub Open-Source Synchronization**:
+8. **Automated GitHub Open-Source Synchronization**:
    - Local skill changes are symlinked directly to the Git repository.
    - The macOS LaunchAgent (`com.kite.skill-github-sync`) watches for modifications and runs tests before committing.
    - Broken unit tests block auto-push to protect remote repository health.
@@ -97,12 +109,13 @@ sync-skills
 ## Step-by-Step Procedure
 
 1. **Question Selection & Scouting**:
-   - Target questions with high follower-to-answer ratios using `scripts/question_evaluator.py`.
+   - Filter candidate pools to exclude already-answered questions (`run.jsonl`).
+   - Target questions with high follower-to-answer ratios using `scripts/question_evaluator.py` or `selector.py`.
    - Prefer technical troubleshooting, tool comparisons, or developer workflow topics with long-tail search value.
 
 2. **Drafting Answer**:
    - Open with the Golden First 100 Words: direct verdict, version, environment.
-   - Maintain 800–2,000 words with H2/H3 headings, code blocks, and 2-3 genuine screenshots.
+   - Maintain 800–2,500 words with H2/H3 headings, code blocks, and 2-3 genuine screenshots.
    - Adhere strictly to the 3-Tier Evidence Standard.
 
 3. **Running Linter**:
@@ -113,13 +126,17 @@ sync-skills
    - Run `python3 scripts/guard.py check`. Ensure `allowed: true` and current time is outside midnight blackout.
 
 5. **Publishing & Recording**:
-   - Publish through web or automated injection.
-   - Log timestamp: `python3 scripts/guard.py record-answer`.\n
+   - Publish through web or automated injection using `ClipboardEvent('paste')` on DraftJS editors.
+   - Verify comment/thought submissions via platform API (`/api/v4/comment_v5/...`).
+   - Log timestamp: `python3 scripts/guard.py record-answer`.
+
 6. **Synchronize Skill Updates**:
    - When modifying rules, scripts, or references, changes are automatically pushed to GitHub by `com.kite.skill-github-sync` daemon upon test pass, or via `sync-skills`.
 
 ## Pitfalls
 
+- **Do not select already-answered questions**: Zhihu strictly permits only one answer per question per account. Automated selectors must filter candidates against `run.jsonl` to prevent overwriting existing answers or throwing composer errors.
+- **Do not rely on CDP type/insertText for DraftJS composers**: Synthetic `ClipboardEvent('paste')` with `DataTransfer('text/plain')` is mandatory to trigger React internal state; raw typing leaves submit buttons disabled. Verify submissions via `/api/v4/comment_v5/answers/{aid}/root_comment` rather than ephemeral DOM nodes.
 - **Do not fabricate benchmark numbers**: Synthetic numbers like "提升了 3.8 倍" without real logs will be dismantled by Zhihu technical readers.
 - **Do not mix affiliate cards into 致知计划 answers**: Disqualifies the answer from traffic revenue share entirely.
 - **Do not use repetitive answer openings**: Wali/Wukong flags cross-answer templated patterns as automated AI farms.
