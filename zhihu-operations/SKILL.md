@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.3.0
+version: 1.3.1
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -68,7 +68,7 @@ sync-skills
    - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, or closing question patterns across answers on the same account.
 
 3. **Hemingway Technical Style (海明威文风硬核技术白描)**:
-   - **Cold Factual Realism**: Open with direct physical and machine reality (exact timestamp, blinking terminal cursor, fan acoustic noise, compiler panics, exact memory or token limits).
+   - **Cold Factual Realism**: Open with direct physical and machine reality (exact timestamp like 凌晨三点, blinking terminal cursor, fan acoustic noise, compiler panics, exact memory or token limits).
    - **Iceberg Principle (冰山法则)**: State visible operational facts, concrete terminal outputs, and mechanical mechanisms (e.g. database row locks, TCP retransmissions, test assertions). Eliminate abstract philosophical speculation and corporate jargon.
    - **Sentence Rhythm & Variance**: Enforce sentence length variation (CV >= 0.35) by interspersing ultra-short punchy declarative clauses with precise engineering statements.
 
