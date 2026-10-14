@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.3.1
+version: 1.3.2
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -64,8 +64,8 @@ sync-skills
 2. **Developer Voice & Anti-AI Standard**:
    - **Golden First 100 Words**: Deliver the direct verdict and first-hand stance immediately. State the testing environment, tool version, and concrete outcome within the first 3 sentences. No philosophical lead-ins.
    - **Micro-Paragraphs**: Keep paragraphs under 3 sentences to prevent dense corporate-report aesthetics.
-   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天"), and bolded tag lists (`- **性能：** ...`).
-   - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, or closing question patterns across answers on the same account.
+   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts (\"不是A而是B\", \"并非……而是……\"), mechanical transition labels (\"首先/其次/最后\", \"总而言之\"), platform clichés (\"作为一名程序员\", \"在AI飞速发展的今天\"), and bolded tag lists (`- **性能：** ...`).
+   - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas (\"日期 + 先说结论\"), benchmark values, or closing question patterns across answers on the same account.
 
 3. **Hemingway Technical Style (海明威文风硬核技术白描)**:
    - **Cold Factual Realism**: Open with direct physical and machine reality (exact timestamp like 凌晨三点, blinking terminal cursor, fan acoustic noise, compiler panics, exact memory or token limits).
@@ -88,8 +88,8 @@ sync-skills
 
 7. **Three-Tier Evidence Standard (三级证据门禁)**:
    - **Tier 1 (Official Documentation)**: Verified vendor specs and release notes.
-   - **Tier 2 (Reproducible Benchmarks)**: Backed by real execution logs on disk. Any specific number (latency in seconds, token counts, pricing, speedup) must have a corresponding log. Never synthesize pseudo-precise metrics (e.g. "18.2秒", "71% 成功率").
-   - **Tier 3 (Qualitative Observations)**: When exact measurement is absent, state findings qualitatively ("明显卡顿", "调用成本显著降低") rather than fabricating numbers.
+   - **Tier 2 (Reproducible Benchmarks)**: Backed by real execution logs on disk. Any specific number (latency in seconds, token counts, pricing, speedup) must have a corresponding log. Never synthesize pseudo-precise metrics (e.g. \"18.2秒\", \"71% 成功率\").
+   - **Tier 3 (Qualitative Observations)**: When exact measurement is absent, state findings qualitatively (\"明显卡顿\", \"调用成本显著降低\") rather than fabricating numbers.
 
 8. **Publishing Cadence Guard**:
    - Daily answer limit: 1-3 per day (paced across golden windows).
@@ -98,7 +98,7 @@ sync-skills
    - Cold-start window: The first 2 hours after publishing determine algorithmic survival.
 
 9. **Monetization Channel Physical Separation**:
-   - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards ("好物推荐") or consultation cards. Maintain 80% pure technical answers.
+   - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards (\"好物推荐\") or consultation cards. Maintain 80% pure technical answers.
    - **好物推荐 (Affiliate CPS)**: Dedicated 20% product recommendation answers.
    - **付费咨询 (1-on-1 Consultation)**: Unlocked at Lv3. Peer debugging and configuration guidance (¥39-¥69).
    - **Lightweight Digital Assets**: Self-developed script packs and checklists (¥19-¥39). Assets must physically exist.
@@ -151,7 +151,7 @@ sync-skills
 - **Do not select already-answered questions**: Zhihu strictly permits only one answer per question per account. Automated selectors must filter candidates against `run.jsonl` to prevent overwriting existing answers or throwing composer errors.
 - **Do not rely on CDP type/insertText for DraftJS composers**: Synthetic `ClipboardEvent('paste')` with `DataTransfer('text/plain')` is mandatory to trigger React internal state; raw typing leaves submit buttons disabled. Verify submissions via `/api/v4/comment_v5/answers/{aid}/root_comment` rather than ephemeral DOM nodes.
 - **Do not spam reload during zse-ck challenges**: When the page enters `readyState === 'loading'` with empty body, hammering with reloads triggers severe WAF blocking. Wait 25 minutes quietly for the token to settle.
-- **Do not fabricate benchmark numbers**: Synthetic numbers like "提升了 3.8 倍" without real logs will be dismantled by Zhihu technical readers.
+- **Do not fabricate benchmark numbers**: Synthetic numbers like \"提升了 3.8 倍\" without real logs will be dismantled by Zhihu technical readers.
 - **Do not mix affiliate cards into 致知计划 answers**: Disqualifies the answer from traffic revenue share entirely.
 - **Do not use repetitive answer openings**: Wali/Wukong flags cross-answer templated patterns as automated AI farms.
 - **Do not break unit tests during skill editing**: Automated GitHub push executes `python3 -m unittest` pre-flight gate; broken tests abort auto-push to prevent pushing failing code.
@@ -161,4 +161,4 @@ sync-skills
 - Linter passes clean: `python3 scripts/lint.py <draft>` exits with code 0.
 - Pacing gate confirms: `python3 scripts/guard.py check` returns `\"allowed\": true`.
 - Every quoted metric resolves to an official source or reproducible test.
-- Unit tests pass: `python3 -m unittest discover -s tests -p "test_*.py"` exits with code 0.
+- Unit tests pass: `python3 -m unittest discover -s tests -p \"test_*.py\"` exits with code 0.
