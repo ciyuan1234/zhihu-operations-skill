@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.3.2
+version: 1.4.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -13,12 +13,14 @@ metadata:
 
 # Zhihu Operations Skill
 
-Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, Hemingway technical prose architecture, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), automated deduplication gates, DraftJS paste event handling, and automated GitHub open-source synchronization.
+Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, Hemingway technical prose architecture, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), anxiety-to-solution conversion frameworks, vertical domain purity gates, automated deduplication, DraftJS paste event handling, and automated GitHub open-source synchronization.
 
 ## When to Use
 
 - Writing, reviewing, or editing Zhihu answers, articles, or thoughts in software, AI, or developer tooling.
 - Applying Hemingway technical prose standards: concise declarative sentences, cold sensory realism (terminal cursor, panic stack traces, memory limits), zero marketing filler.
+- Turning high-traffic anxiety questions ("Will AI replace programmers?", job market concerns) into authoritative technical answers with reproducible solutions.
+- Enforcing domain purity gates to prevent persona dilution or cross-vertical contamination.
 - Auditing draft answers against anti-AI standards (`scripts/lint.py`) to prevent content folding, account de-weighting, or Wali/Wukong automated penalty.
 - Checking publishing cadence and intervals (`scripts/guard.py`) to prevent spam flags (daily cap 1-3, minimum 4-6h gap, midnight blackout 00:00-07:00 CST).
 - Scoring potential questions (`scripts/question_evaluator.py`, `selector.py`) to target high-traction, high-search-value answer candidates.
@@ -63,9 +65,9 @@ sync-skills
 
 2. **Developer Voice & Anti-AI Standard**:
    - **Golden First 100 Words**: Deliver the direct verdict and first-hand stance immediately. State the testing environment, tool version, and concrete outcome within the first 3 sentences. No philosophical lead-ins.
-   - **Micro-Paragraphs**: Keep paragraphs under 3 sentences to prevent dense corporate-report aesthetics.
-   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts (\"不是A而是B\", \"并非……而是……\"), mechanical transition labels (\"首先/其次/最后\", \"总而言之\"), platform clichés (\"作为一名程序员\", \"在AI飞速发展的今天\"), and bolded tag lists (`- **性能：** ...`).
-   - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas (\"日期 + 先说结论\"), benchmark values, or closing question patterns across answers on the same account.
+   - **Micro-Paragraphs & Sentence Variance**: Keep paragraphs under 3 sentences to prevent dense corporate-report aesthetics, but avoid uniform 1-sentence paragraphs throughout the whole answer (which triggers the `[WARN] §5 段落句数几乎全为 1 句` linter alert). Interweave punchy single-sentence declarations with 2-3 sentence technical context.
+   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天"), and bolded tag lists (`- **性能：** ...`).
+   - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, or closing question patterns across answers on the same account.
 
 3. **Hemingway Technical Style (海明威文风硬核技术白描)**:
    - **Cold Factual Realism**: Open with direct physical and machine reality (exact timestamp like 凌晨三点, blinking terminal cursor, fan acoustic noise, compiler panics, exact memory or token limits).
@@ -88,8 +90,8 @@ sync-skills
 
 7. **Three-Tier Evidence Standard (三级证据门禁)**:
    - **Tier 1 (Official Documentation)**: Verified vendor specs and release notes.
-   - **Tier 2 (Reproducible Benchmarks)**: Backed by real execution logs on disk. Any specific number (latency in seconds, token counts, pricing, speedup) must have a corresponding log. Never synthesize pseudo-precise metrics (e.g. \"18.2秒\", \"71% 成功率\").
-   - **Tier 3 (Qualitative Observations)**: When exact measurement is absent, state findings qualitatively (\"明显卡顿\", \"调用成本显著降低\") rather than fabricating numbers.
+   - **Tier 2 (Reproducible Benchmarks)**: Backed by real execution logs on disk. Any specific number (latency in seconds, token counts, pricing, speedup) must have a corresponding log. Never synthesize pseudo-precise metrics (e.g. "18.2秒", "71% 成功率").
+   - **Tier 3 (Qualitative Observations)**: When exact measurement is absent, state findings qualitatively ("明显卡顿", "调用成本显著降低") rather than fabricating numbers.
 
 8. **Publishing Cadence Guard**:
    - Daily answer limit: 1-3 per day (paced across golden windows).
@@ -98,15 +100,25 @@ sync-skills
    - Cold-start window: The first 2 hours after publishing determine algorithmic survival.
 
 9. **Monetization Channel Physical Separation**:
-   - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards (\"好物推荐\") or consultation cards. Maintain 80% pure technical answers.
+   - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards ("好物推荐") or consultation cards. Maintain 80% pure technical answers.
    - **好物推荐 (Affiliate CPS)**: Dedicated 20% product recommendation answers.
    - **付费咨询 (1-on-1 Consultation)**: Unlocked at Lv3. Peer debugging and configuration guidance (¥39-¥69).
    - **Lightweight Digital Assets**: Self-developed script packs and checklists (¥19-¥39). Assets must physically exist.
 
-10. **Automated GitHub Open-Source Synchronization**:
-   - Local skill changes are symlinked directly to the Git repository.
-   - The macOS LaunchAgent (`com.kite.skill-github-sync`) watches for modifications and runs tests before committing.
-   - Broken unit tests block auto-push to protect remote repository health.
+10. **Anxiety-to-Solution Conversion Rule (借势破圈反焦虑与解法变现)**:
+    - High-traffic industry anxiety questions ("Will AI replace programmers?", "Job market crash for juniors") attract massive impressions but carry severe risks if handled purely as emotional venting.
+    - Pure anxiety selling is penalized by Zhihu quality models (lowering 致知计划 revenue), yields negligible bookmark/favorite rates, and destroys peer-developer trust.
+    - The winning conversion framework: **Open by acknowledging the macro anxiety -> Shatter vague fear with cold, detailed engineering realities (system crashes, concurrency deadlocks, responsibility boundaries, AST syntax trees) -> Deliver reproducible solutions (small unit test suites, Git diff audits, lightweight toolkits)**. Topic traffic drives the impressions; calm engineering certainty drives bookmarks, follows, and consulting conversions.
+
+11. **Vertical Domain Purity & Anti-Dilution Gate (赛道纯度与防人设撕裂门禁)**:
+    - Maintain strict domain purity for the technical developer persona (大三独立开发者、终端实测).
+    - Strictly prohibit drifting into unrelated consumer verticals (e.g., parenting/mom content, lifestyle hacks, generic resume tips, finance speculation). Cross-vertical posts destroy algorithm topic clustering and trigger instant un-follows.
+    - Career/job topics are permitted ONLY at the hard-core technical intersection: real code reading vs bloated tutorial projects, AST inspection, unit test boundary assertions, and sandbox debugging—never generic HR interview clichés or motivational advice.
+
+12. **Automated GitHub Open-Source Synchronization**:
+    - Local skill changes are symlinked directly to the Git repository.
+    - The macOS LaunchAgent (`com.kite.skill-github-sync`) watches for modifications and runs tests before committing.
+    - Broken unit tests block auto-push to protect remote repository health.
 
 ## Detailed References
 
@@ -115,7 +127,7 @@ sync-skills
 - `references/anti_ai_linter_and_fingerprint.md`: Complete de-AI lint rules, banned patterns, Hemingway prose standards, and account fingerprint avoidance.
 - `references/three_tier_evidence_system.md`: The 3-Tier Evidence verification protocol.
 - `references/publishing_cadence_and_antiban.md`: Publishing quotas, golden windows, zse-ck quiet protocols, and anti-ban mechanics.
-- `references/monetization_and_traffic_separation.md`: Detailed revenue paths and the 80/20 physical separation rule.
+- `references/monetization_and_traffic_separation.md`: Detailed revenue paths, the 80/20 physical separation rule, and anxiety conversion mechanics.
 
 ## Step-by-Step Procedure
 
@@ -123,10 +135,12 @@ sync-skills
    - Filter candidate pools to exclude already-answered questions (`run.jsonl`).
    - Target questions with high follower-to-answer ratios using `scripts/question_evaluator.py` or `selector.py`.
    - Prefer technical troubleshooting, tool comparisons, or developer workflow topics with long-tail search value.
+   - When tackling high-traffic anxiety questions, ensure the angle allows for an engineering-backed solution.
 
 2. **Drafting Answer**:
    - Open with the Golden First 100 Words: direct verdict, version, environment.
    - Apply Hemingway technical prose: lean declarative sentences, cold physical/terminal realism, micro-paragraphs (<=3 sentences), zero corporate buzzwords.
+   - Mix single-sentence declarations with 2-3 sentence technical context to prevent uniform paragraph structure warnings.
    - Maintain 800–2,500 words with H2/H3 headings, code blocks, and 2-3 genuine screenshots.
    - Adhere strictly to the 3-Tier Evidence Standard.
 
@@ -141,17 +155,20 @@ sync-skills
    - Publish through web or automated injection using `ClipboardEvent('paste')` on DraftJS editors.
    - If `zse-ck` loading state is encountered, observe the mandatory 25-minute quiet period before retrying.
    - Verify comment/thought submissions via platform API (`/api/v4/comment_v5/...`).
-   - Log timestamp: `python3 scripts/guard.py record-answer`附带.
+   - Log timestamp: `python3 scripts/guard.py record-answer`.
 
 6. **Synchronize Skill Updates**:
    - When modifying rules, scripts, or references, changes are automatically pushed to GitHub by `com.kite.skill-github-sync` daemon upon test pass, or via `sync-skills`.
 
 ## Pitfalls
 
+- **Do not post pure anxiety without concrete solutions**: Pure venting or doom-mongering earns impressions but zero bookmarks and kills consulting credibility. Always anchor anxiety topics with reproducible terminal commands, test assertions, or architecture diagrams.
+- **Do not drift into non-technical verticals**: Mixing parenting, general lifestyle, or HR resume tropes into a developer account shatters account topic clustering and drives away core technical followers.
+- **Do not make every paragraph 1 single sentence**: Uniform 1-sentence paragraphing triggers linter warnings for structural monotony. Interleave punchy lines with multi-sentence explanatory context.
 - **Do not select already-answered questions**: Zhihu strictly permits only one answer per question per account. Automated selectors must filter candidates against `run.jsonl` to prevent overwriting existing answers or throwing composer errors.
 - **Do not rely on CDP type/insertText for DraftJS composers**: Synthetic `ClipboardEvent('paste')` with `DataTransfer('text/plain')` is mandatory to trigger React internal state; raw typing leaves submit buttons disabled. Verify submissions via `/api/v4/comment_v5/answers/{aid}/root_comment` rather than ephemeral DOM nodes.
 - **Do not spam reload during zse-ck challenges**: When the page enters `readyState === 'loading'` with empty body, hammering with reloads triggers severe WAF blocking. Wait 25 minutes quietly for the token to settle.
-- **Do not fabricate benchmark numbers**: Synthetic numbers like \"提升了 3.8 倍\" without real logs will be dismantled by Zhihu technical readers.
+- **Do not fabricate benchmark numbers**: Synthetic numbers like "提升了 3.8 倍" without real logs will be dismantled by Zhihu technical readers.
 - **Do not mix affiliate cards into 致知计划 answers**: Disqualifies the answer from traffic revenue share entirely.
 - **Do not use repetitive answer openings**: Wali/Wukong flags cross-answer templated patterns as automated AI farms.
 - **Do not break unit tests during skill editing**: Automated GitHub push executes `python3 -m unittest` pre-flight gate; broken tests abort auto-push to prevent pushing failing code.
