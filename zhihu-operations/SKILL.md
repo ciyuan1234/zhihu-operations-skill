@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.4.0
+version: 1.5.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -13,19 +13,21 @@ metadata:
 
 # Zhihu Operations Skill
 
-Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, Hemingway technical prose architecture, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), anxiety-to-solution conversion frameworks, vertical domain purity gates, automated deduplication, DraftJS paste event handling, and automated GitHub open-source synchronization.
+Operate Zhihu (知乎) creator accounts for developer and technology verticals. Enforces Wilson score algorithm alignment, strict anti-AI style linting, Hemingway technical prose architecture, 3-tier evidence gates, publishing cadence guardrails, traffic-channel monetization separation (致知计划 vs 好物推荐 vs 付费咨询), anxiety-to-solution conversion frameworks, vertical domain purity gates, automated deduplication, DraftJS paste event handling, SPA navigation optimization, and automated GitHub open-source synchronization.
 
 ## When to Use
 
 - Writing, reviewing, or editing Zhihu answers, articles, or thoughts in software, AI, or developer tooling.
 - Applying Hemingway technical prose standards: concise declarative sentences, cold sensory realism (terminal cursor, panic stack traces, memory limits), zero marketing filler.
 - Turning high-traffic anxiety questions ("Will AI replace programmers?", job market concerns) into authoritative technical answers with reproducible solutions.
+- Constructing evergreen content moats around CS fundamentals (OS, Computer Organization, Networks, Debugging methodology).
 - Enforcing domain purity gates to prevent persona dilution or cross-vertical contamination.
 - Auditing draft answers against anti-AI standards (`scripts/lint.py`) to prevent content folding, account de-weighting, or Wali/Wukong automated penalty.
 - Checking publishing cadence and intervals (`scripts/guard.py`) to prevent spam flags (daily cap 1-3, minimum 4-6h gap, midnight blackout 00:00-07:00 CST).
 - Scoring potential questions (`scripts/question_evaluator.py`, `selector.py`) to target high-traction, high-search-value answer candidates.
 - Filtering out already-answered questions from candidate pools to prevent accidental answer overwrites.
 - Automating DraftJS editor input (answers, comments, and thoughts) using native `ClipboardEvent('paste')` synthesis.
+- Executing fast browser navigation via in-session `eval "location.href = '...'; 'ok'"` to bypass blocking CLI goto timeouts on heavy SPAs.
 - Handling dynamic anti-crawler `zse-ck` challenges with mandatory 25-minute quiet cooldowns.
 - Applying the 3-Tier Evidence Standard (official docs -> reproducible benchmarks -> qualitative observations) to eliminate fabricated metrics.
 - Structuring monetization funnels while strictly keeping 致知计划 (pure traffic revenue) and affiliate cards physically separated.
@@ -115,7 +117,16 @@ sync-skills
     - Strictly prohibit drifting into unrelated consumer verticals (e.g., parenting/mom content, lifestyle hacks, generic resume tips, finance speculation). Cross-vertical posts destroy algorithm topic clustering and trigger instant un-follows.
     - Career/job topics are permitted ONLY at the hard-core technical intersection: real code reading vs bloated tutorial projects, AST inspection, unit test boundary assertions, and sandbox debugging—never generic HR interview clichés or motivational advice.
 
-12. **Automated GitHub Open-Source Synchronization**:
+12. **SPA Navigation & Process Isolation (SPA 极速跳转与进程解释器隔离)**:
+    - In browser automation via `cmux`, avoid calling blocking `cmux browser goto <url>` on SPA web pages. The CLI command waits for page network-idle / domcontentloaded events, which on Zhihu frequently delay or timeout (>45s) due to background analytics or long-lived polling.
+    - Navigate using in-session script evaluation: `eval "location.href = '<url>'; 'ok'"` to achieve instant (0.1s) redirection.
+    - In automation scripts spawning child CLI subprocesses (e.g. calling `guard.py` from `engage.py` or `runner.py`), never hardcode `"python3"`. Always use `sys.executable` to guarantee that child processes inherit the validated runtime environment and avoid invoking broken or mismatched system Python wrappers.
+
+13. **CS Fundamentals & Debugging Moat Architecture (计算机底层与排障硬核护城河)**:
+    - Expand beyond ephemeral tooling comparisons into evergreen CS fundamentals (Operating Systems, Computer Organization, Computer Networks, and Debugging methodologies) targeting multi-thousand to ten-thousand follower questions.
+    - Strictly avoid abstract academic terminology recitations and avoid unrealistic "write kernel from scratch" extremes. Ground every article in terminal physics: `strace` system calls, `/proc/<pid>/maps` virtual memory, `tcpdump -X` raw hex packet headers, micro-benchmarks demonstrating 64-byte Cache Line false sharing, `git bisect` mechanical bisection, and red-to-green unit test contract closures.
+
+14. **Automated GitHub Open-Source Synchronization**:
     - Local skill changes are symlinked directly to the Git repository.
     - The macOS LaunchAgent (`com.kite.skill-github-sync`) watches for modifications and runs tests before committing.
     - Broken unit tests block auto-push to protect remote repository health.
@@ -153,6 +164,7 @@ sync-skills
 
 5. **Publishing & Recording**:
    - Publish through web or automated injection using `ClipboardEvent('paste')` on DraftJS editors.
+   - Use `location.href` via eval rather than blocking CLI `goto` for SPA navigation.
    - If `zse-ck` loading state is encountered, observe the mandatory 25-minute quiet period before retrying.
    - Verify comment/thought submissions via platform API (`/api/v4/comment_v5/...`).
    - Log timestamp: `python3 scripts/guard.py record-answer`.
@@ -165,6 +177,9 @@ sync-skills
 - **Do not post pure anxiety without concrete solutions**: Pure venting or doom-mongering earns impressions but zero bookmarks and kills consulting credibility. Always anchor anxiety topics with reproducible terminal commands, test assertions, or architecture diagrams.
 - **Do not drift into non-technical verticals**: Mixing parenting, general lifestyle, or HR resume tropes into a developer account shatters account topic clustering and drives away core technical followers.
 - **Do not make every paragraph 1 single sentence**: Uniform 1-sentence paragraphing triggers linter warnings for structural monotony. Interleave punchy lines with multi-sentence explanatory context.
+- **Do not use blocking CLI `goto` in SPA automation**: `cmux browser goto` blocks on long-lived network streams on Zhihu SPA, causing script timeouts. Use `eval "location.href = '...'; 'ok'"` for instant navigation.
+- **Do not hardcode `"python3"` in subprocess calls**: System Python may be outdated or misconfigured; always invoke `sys.executable` to inherit the current execution environment.
+- **Do not teach CS fundamentals purely from textbooks**: Avoid writing answers that recite theoretical definitions without terminal verification; anchor concepts in measurable terminal outputs (syscall latencies, hex packet offsets, CPU cache line timings).
 - **Do not select already-answered questions**: Zhihu strictly permits only one answer per question per account. Automated selectors must filter candidates against `run.jsonl` to prevent overwriting existing answers or throwing composer errors.
 - **Do not rely on CDP type/insertText for DraftJS composers**: Synthetic `ClipboardEvent('paste')` with `DataTransfer('text/plain')` is mandatory to trigger React internal state; raw typing leaves submit buttons disabled. Verify submissions via `/api/v4/comment_v5/answers/{aid}/root_comment` rather than ephemeral DOM nodes.
 - **Do not spam reload during zse-ck challenges**: When the page enters `readyState === 'loading'` with empty body, hammering with reloads triggers severe WAF blocking. Wait 25 minutes quietly for the token to settle.
