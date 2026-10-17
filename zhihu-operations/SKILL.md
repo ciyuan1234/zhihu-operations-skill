@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.8.0
+version: 1.9.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -23,7 +23,7 @@ Operate Zhihu (知乎) creator accounts for developer and technology verticals. 
 - Constructing evergreen content moats around CS fundamentals (OS, Computer Organization, Networks, Debugging methodology).
 - Enforcing domain purity gates to prevent persona dilution or cross-vertical contamination.
 - Auditing draft answers against anti-AI standards (`scripts/lint.py`) to prevent content folding, account de-weighting, or Wali/Wukong automated penalty.
-- Checking publishing cadence and intervals (`scripts/guard.py`) to prevent spam flags (daily cap 1-3, minimum 4-6h gap, midnight blackout 00:00-07:00 CST).
+- Checking publishing cadence and intervals (`scripts/guard.py`) to prevent spam flags (daily cap 1-2, minimum 4-6h gap, midnight blackout 00:00-07:00 CST).
 - Scoring potential questions (`scripts/question_evaluator.py`, `selector.py`) to target high-traction, high-search-value answer candidates.
 - Scouting questions and fetching metrics without DOM stalls via authenticated in-session `fetch('/api/v4/search_v3?t=question&q=...')`.
 - Filtering out already-answered questions from candidate pools to prevent accidental answer overwrites.
@@ -73,66 +73,72 @@ sync-skills
    - **Subheading Hierarchy Compression**: Cap H2/H3 subheadings at `<= 5` across the entire answer (e.g. `## 一` to `## 五`). More than 5 subheadings triggers `[WARN] §5 小标题 >5 骨架感强`. When decomposing sub-points (such as 3 traps, 3 cases, or 3 pitfalls), use bold inline lead-ins (`**核心死穴一：...**`) rather than `###` subheadings.
    - **Definitive Stance Gate**: Include clear evaluative stance words (specifically from the linter whitelist: `是倒退`, `不推荐`, `慎买`, `别买`, `没必要`, `不划算`, `最贵`, `坑`, `跑偏`, `不够`, `不诚实`, `最强`, `天花板`). Answers lacking these trigger `[WARN] §3 未检测到明确立场词，检查是否以「各有优劣」收尾`.
    - **Concrete Specificity & Version Anchors Gate (`§3 具体数字/版本/时间 ≥ 3`)**: Answers must include at least 3 verified, concrete anchors matching `SPECIFIC` regex (`\d+(?:\.\d+)?%|\$\d+|\d+[KkMm]?\s*(?:token|美元|美金|次|万|K)|v?\d+\.\d+(?:\.\d+)?|\d{4}\s*年`)—such as specific library/engine versions (`v8.0`, `MySQL 8.0.36`), testing years (`2026 年`), percentages (`95%`), or scale metrics (`10 万次`). Omitting these triggers `[WARN] §3 具体数字/版本/时间仅 X 处`.
-   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天", "在...的今天"), marketing jargon (strictly ban "闭环", "底层逻辑", "颗粒度", "赋能", "降维打击", "碾压", "心智负担"), and hyperbole ("颠覆性", "颠覆了什么", "史诗级"). Express trade-offs affirmatively ("不能只盯着……更要深入排查……", "跳出……的局限，转为……") rather than negation antithesis.
-   - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, or closing question patterns across answers on the same account.
+   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天", "在...的今天"), marketing jargon (strictly ban "闭环", "底层逻辑", "颗粒度", "赋能", "降维打击", "碾压", "心智负担"), hyperbole ("颠覆性", "颠覆了什么", "史诗级"), and pseudo-philosophical AI template phrases (strictly ban "微观物理真相", "物理真相", "铁血契约", "工业级军规", "阿喀琉斯之踵", "判决四重奏", "教科书式谎言", "全行业讨论频次最高", "基石底座"). Express trade-offs affirmatively ("不能只盯着……更要深入排查……", "跳出……的局限，转为……") rather than negation antithesis.
+   - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, formulaic comment structures ("把XX简单归结为...真相是三大物理契约..."), or closing question patterns across answers on the same account.
 
-3. **Hemingway Technical Style (海明威文风硬核技术白描)**:
+3. **Topic Quarantine & AI Batch-Generation Risk Gate (选题避险与防批量AI归因门禁)**:
+   - **Generic AI Coding Tool Listicle Quarantine**: Platform NLP classifiers heavily monitor generic topics ("哪些AI编程工具更好用", "Codex体验真有那么好吗", "普通人用Codex有什么用", "Cursor/Claude选型对比", "如何充值/降低费用"). Across 38 published answers, 7 were collapsed with `可能包含 AI 创作内容`, and 100% of the collapsed answers belonged to this generic tool review cluster.
+   - **Zero-Collapse on CS Fundamentals**: Deep computer science and engineering topics (OS memory mapping, Linux CFS/BBR, MySQL MVCC version chains, network protocol mechanics) had a 0% collapse rate. All future pipeline content must anchor strictly in CS fundamentals and hard engineering reality.
+   - **Length & Density Bounding (2,000–3,500 Words)**: Uncapped, encyclopedic generation (6,000–8,500 words) triggers template and artificial inflation flags. Anchor articles strictly in the lean, dense 2,000–3,500 word sweet spot.
+   - **Throttled Natural Cadence**: Cap daily publishing at 1-2 answers/day (with >=4-6h gaps) to eliminate machine-like temporal clustering.
+
+4. **Hemingway Technical Style (海明威文风硬核技术白描)**:
    - **Cold Factual Realism**: Open with direct physical and machine reality (exact timestamp like 凌晨三点, blinking terminal cursor, fan acoustic noise, compiler panics, exact memory or token limits).
    - **Iceberg Principle (冰山法则)**: State visible operational facts, concrete terminal outputs, and mechanical mechanisms (e.g. database row locks, TCP retransmissions, test assertions). Eliminate abstract philosophical speculation and corporate jargon.
    - **Sentence Rhythm & Variance**: Enforce sentence length variation (CV >= 0.35) by interspersing ultra-short punchy declarative clauses with precise engineering statements.
 
-4. **Question Deduplication Gate (唯一回答门禁)**:
+5. **Question Deduplication Gate (唯一回答门禁)**:
    - Zhihu strictly allows only ONE answer per question per account.
    - Automated question selectors must cross-reference `logs/run.jsonl` (published answers with status=ok) and queued drafts to exclude previously answered questions. Picking an answered question overwrites existing content or fails when locating the composer.
 
-5. **DraftJS & Synthetic Paste Pipeline (输入法合成事件门禁)**:
+6. **DraftJS & Synthetic Paste Pipeline (输入法合成事件门禁)**:
    - Zhihu composer interfaces (answers, comments, and thoughts) use Draft.js `contenteditable`.
    - Direct CDP text insertion (`Input.insertText` / `cmux browser type`) modifies DOM text without committing to React component state, leaving the submit button permanently disabled.
    - Reliable automation must click the editor to mount toolbars, then dispatch a synthetic `ClipboardEvent('paste')` populated with `DataTransfer('text/plain')`.
    - Verification of comments must query `/api/v4/comment_v5/answers/{aid}/root_comment` for author `url_token` rather than relying on ephemeral DOM disappearance.
 
-6. **Anti-Crawler zse-ck Challenge Protocol (动态风控防爬静置原则)**:
+7. **Anti-Crawler zse-ck Challenge Protocol (动态风控防爬静置原则)**:
    - When evaluating browser state via cmux, if `document.readyState === 'loading'` and `document.body.innerText === ''`, the tab has triggered an asynchronous `zse-ck` challenge or SPA hydration stall.
    - Enforce a strict 25-minute quiet period with zero automated reloads, zero clicks, and zero polling API calls to allow the challenge to resolve without escalating to visual captcha or IP throttling.
 
-7. **Three-Tier Evidence Standard (三级证据门禁)**:
+8. **Three-Tier Evidence Standard (三级证据门禁)**:
    - **Tier 1 (Official Documentation)**: Verified vendor specs and release notes.
    - **Tier 2 (Reproducible Benchmarks)**: Backed by real execution logs on disk. Any specific number (latency in seconds, token counts, pricing, speedup) must have a corresponding log. Never synthesize pseudo-precise metrics (e.g. "18.2秒", "71% 成功率").
    - **Tier 3 (Qualitative Observations)**: When exact measurement is absent, state findings qualitatively ("明显卡顿", "调用成本显著降低") rather than fabricating numbers.
 
-8. **Publishing Cadence Guard**:
-   - Daily answer limit: 1-3 per day (paced across golden windows).
+9. **Publishing Cadence Guard**:
+   - Daily answer limit: 1-2 per day (paced across golden windows).
    - Minimum interval gap: Strictly >= 4 hours between answers.
    - Midnight blackout: 00:00–07:00 CST forbidden.
    - Cold-start window: The first 2 hours after publishing determine algorithmic survival.
 
-9. **Monetization Channel Physical Separation**:
-   - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards ("好物推荐") or consultation cards. Maintain 80% pure technical answers.
-   - **好物推荐 (Affiliate CPS)**: Dedicated 20% product recommendation answers.
-   - **付费咨询 (1-on-1 Consultation)**: Unlocked at Lv3. Peer debugging and configuration guidance (¥39-¥69).
-   - **Lightweight Digital Assets**: Self-developed script packs and checklists (¥19-¥39). Assets must physically exist.
+10. **Monetization Channel Physical Separation**:
+    - **致知计划 (Traffic Share)**: Requires Lv4+, 100+ followers, quality score ≥ 3,000. Strictly forbids affiliate cards ("好物推荐") or consultation cards. Maintain 80% pure technical answers.
+    - **好物推荐 (Affiliate CPS)**: Dedicated 20% product recommendation answers.
+    - **付费咨询 (1-on-1 Consultation)**: Unlocked at Lv3. Peer debugging and configuration guidance (¥39-¥69).
+    - **Lightweight Digital Assets**: Self-developed script packs and checklists (¥19-¥39). Assets must physically exist.
 
-10. **Anxiety-to-Solution Conversion Rule (借势破圈反焦虑与解法变现)**:
+11. **Anxiety-to-Solution Conversion Rule (借势破圈反焦虑与解法变现)**:
     - High-traffic industry anxiety questions ("Will AI replace programmers?", "Job market crash for juniors") attract massive impressions but carry severe risks if handled purely as emotional venting.
     - Pure anxiety selling is penalized by Zhihu quality models (lowering 致知计划 revenue), yields negligible bookmark/favorite rates, and destroys peer-developer trust.
     - The winning conversion framework: **Open by acknowledging the macro anxiety -> Shatter vague fear with cold, detailed engineering realities (system crashes, concurrency deadlocks, responsibility boundaries, AST syntax trees) -> Deliver reproducible solutions (small unit test suites, Git diff audits, lightweight toolkits)**. Topic traffic drives the impressions; calm engineering certainty drives bookmarks, follows, and consulting conversions.
 
-11. **Vertical Domain Purity & Anti-Dilution Gate (赛道纯度与防人设撕裂门禁)**:
+12. **Vertical Domain Purity & Anti-Dilution Gate (赛道纯度与防人设撕裂门禁)**:
     - Maintain strict domain purity for the technical developer persona (大三独立开发者、终端实测).
     - Strictly prohibit drifting into unrelated consumer verticals (e.g., parenting/mom content, lifestyle hacks, generic resume tips, finance speculation). Cross-vertical posts destroy algorithm topic clustering and trigger instant un-follows.
     - Career/job topics are permitted ONLY at the hard-core technical intersection: real code reading vs bloated tutorial projects, AST inspection, unit test boundary assertions, and sandbox debugging—never generic HR interview clichés or motivational advice.
 
-12. **In-Session API Scouting & SPA Navigation (API 极速调研与 SPA 避坑)**:
+13. **In-Session API Scouting & SPA Navigation (API 极速调研与 SPA 避坑)**:
     - In browser automation via `cmux`, avoid calling blocking `cmux browser goto <url>` on SPA web pages. The CLI command waits for page network-idle / domcontentloaded events, which on Zhihu frequently delay or timeout (>45s) due to background analytics or long-lived polling.
     - Navigate using in-session script evaluation: `eval "location.href = '<url>'; 'ok'\"` to achieve instant (0.1s) redirection.
     - When scouting potential questions or fetching follower/answer metrics, execute `eval "fetch('/api/v4/search_v3?t=question&q=...').then(r=>r.json())...\"` inside the authenticated browser tab. This retrieves structured candidate data and traffic metrics in milliseconds without reloading pages, navigating away, or risking React DOM hydration stalls.
     - In automation scripts spawning child CLI subprocesses (e.g. calling `guard.py` from `engage.py` or `runner.py`), never hardcode `"python3"`. Always use `sys.executable` to guarantee that child processes inherit the validated runtime environment and avoid invoking broken or mismatched system Python wrappers.
 
-13. **CS Fundamentals & Debugging Moat Architecture (计算机底层与排障硬核护城河)**:
+14. **CS Fundamentals & Debugging Moat Architecture (计算机底层与排障硬核护城河)**:
     - Expand beyond ephemeral tooling comparisons into evergreen CS fundamentals (Operating Systems, Computer Organization, Computer Networks, and Debugging methodologies) targeting multi-thousand to ten-thousand follower questions.
     - Strictly avoid abstract academic terminology recitations and avoid unrealistic "write kernel from scratch" extremes. Ground every article in terminal physics: `strace` system calls, `/proc/<pid>/maps` virtual memory, `tcpdump -X` raw hex packet headers, micro-benchmarks demonstrating 64-byte Cache Line false sharing, `git bisect` mechanical bisection, and red-to-green unit test contract closures.
 
-14. **Automated GitHub Open-Source Synchronization**:
+15. **Automated GitHub Open-Source Synchronization**:
     - Local skill changes are symlinked directly to the Git repository.
     - The macOS LaunchAgent (`com.kite.skill-github-sync`) watches for modifications and runs tests before committing.
     - Broken unit tests block auto-push to protect remote repository health.
@@ -163,7 +169,7 @@ sync-skills
    - Mix single-sentence declarations, 2-sentence context, and 3-sentence analyses to satisfy paragraph sentence count diversity (`len(set(counts)) >= 3`).
    - Plant explicit stance vocabulary (`是倒退`, `不推荐`, `坑`, `跑偏`, `没必要`) to ground the engineering verdict.
    - Include at least 3 concrete anchors matching `SPECIFIC` regex (`\d+(?:\.\d+)?%|\$\d+|\d+[KkMm]?\s*(?:token|美元|美金|次|万|K)|v?\d+\.\d+(?:\.\d+)?|\d{4}\s*年`) to satisfy the specificity gate.
-   - Maintain 2,000–6,500 words with H2 headings, code blocks, and 2-3 genuine screenshots.
+   - Maintain 2,000–3,500 words with H2 headings, code blocks, and 2-3 genuine screenshots.
    - Adhere strictly to the 3-Tier Evidence Standard.
 
 3. **Running Linter**:
@@ -178,7 +184,7 @@ sync-skills
    - Use `location.href` via eval rather than blocking CLI `goto` for SPA navigation.
    - If `zse-ck` loading state is encountered, observe the mandatory 25-minute quiet period before retrying.
    - Verify comment/thought submissions via platform API (`/api/v4/comment_v5/...`).
-   - Log timestamp: `python3 scripts/guard.py record-answer`.
+   - Log timestamp: `python3 scripts/guard.py record-answer``.
 
 6. **Synchronize Skill Updates**:
    - When modifying rules, scripts, or references, changes are automatically pushed to GitHub by `com.kite.skill-github-sync` daemon upon test pass, or via `sync-skills`.
@@ -190,6 +196,9 @@ sync-skills
 - **Do not use more than 5 subheadings**: Having `> 5` H2/H3 headers triggers `§5 小标题 >5 骨架感强`. Group sub-points under bold inline lead-ins (`**核心死穴一：...**`) rather than `###` subheadings.
 - **Do not omit stance words in technical explanations**: Without explicit stance vocabulary (`是倒退`, `不推荐`, `坑`, `跑偏`, `没必要`), `lint.py` warns for lack of clear stance. Always declare an unambiguous engineering verdict.
 - **Do not omit concrete version/scale anchors**: A pure conceptual answer without at least 3 specific anchors (`vX.Y`, `\d+%`, `\d+ 万`, `\d{4} 年`) triggers `§3 具体数字/版本/时间仅 X 处（目标 ≥3）`. Explicitly cite exact engine versions, testing years, or percentage benchmarks.
+- **Do not publish generic AI tool comparison or ranking listicles**: High-density NLP classification zone; triggers automated batch generation flags. Stick to deep CS fundamentals (OS, Linux kernel, networks, DB engine).
+- **Do not use formulaic pseudo-philosophical phrases**: Words like '微观物理真相', '铁血契约', '工业级军规', '阿喀琉斯之踵', '基石底座' form cross-article cluster fingerprints. Express mechanisms directly through code, logs, and syscalls.
+- **Do not inflate technical answers beyond 3,500 words with repetitive definitions**: Excessive 6,000-8,000 word encyclopedic dumps trigger batch generation and reader abandonment. Keep to lean, dense 2,000–3,500 words.
 - **Do not use contrastive negation like '不是A而是B'**: Even innocent phrases like '核心指标不是慢日志，而是Undo链' trigger `[FAIL] §2 不是A而是B`. Express trade-offs affirmatively without the contrast particle.
 - **Do not use words containing '颠覆'**: '颠覆了传统认知' or '颠覆性' triggers the hyperbole hard-ban. Use '机制革新' or '架构重构'.
 - **Do not use buzzwords like '碾压'**: Triggers marketing jargon and hyperbole bans in `lint.py`. Use objective phrases like '显著领先', '性能分歧'.
