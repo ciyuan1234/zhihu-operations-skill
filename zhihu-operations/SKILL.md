@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.7.0
+version: 1.8.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -72,7 +72,8 @@ sync-skills
    - **Paragraph Sentence Count Diversity Gate (`len(set(counts)) >= 3`)**: While paragraphs must stay `<= 3` sentences, making all paragraphs 1 sentence or having only two distinct paragraph lengths triggers `[WARN] §5 段落句数几乎全为 X 句，结构过于整齐` (template monotony). Interleave 1-sentence punchy claims, 2-sentence technical context, and 3-sentence analytical paragraphs so that `set(counts)` contains at least 3 distinct integers (e.g. `{1, 2, 3}`).
    - **Subheading Hierarchy Compression**: Cap H2/H3 subheadings at `<= 5` across the entire answer (e.g. `## 一` to `## 五`). More than 5 subheadings triggers `[WARN] §5 小标题 >5 骨架感强`. When decomposing sub-points (such as 3 traps, 3 cases, or 3 pitfalls), use bold inline lead-ins (`**核心死穴一：...**`) rather than `###` subheadings.
    - **Definitive Stance Gate**: Include clear evaluative stance words (specifically from the linter whitelist: `是倒退`, `不推荐`, `慎买`, `别买`, `没必要`, `不划算`, `最贵`, `坑`, `跑偏`, `不够`, `不诚实`, `最强`, `天花板`). Answers lacking these trigger `[WARN] §3 未检测到明确立场词，检查是否以「各有优劣」收尾`.
-   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天", "在...的今天"), marketing jargon (strictly ban "闭环", "底层逻辑", "颗粒度", "赋能", "降维打击", "碾压", "心智负担"), and hyperbole ("颠覆性", "史诗级").
+   - **Concrete Specificity & Version Anchors Gate (`§3 具体数字/版本/时间 ≥ 3`)**: Answers must include at least 3 verified, concrete anchors matching `SPECIFIC` regex (`\d+(?:\.\d+)?%|\$\d+|\d+[KkMm]?\s*(?:token|美元|美金|次|万|K)|v?\d+\.\d+(?:\.\d+)?|\d{4}\s*年`)—such as specific library/engine versions (`v8.0`, `MySQL 8.0.36`), testing years (`2026 年`), percentages (`95%`), or scale metrics (`10 万次`). Omitting these triggers `[WARN] §3 具体数字/版本/时间仅 X 处`.
+   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天", "在...的今天"), marketing jargon (strictly ban "闭环", "底层逻辑", "颗粒度", "赋能", "降维打击", "碾压", "心智负担"), and hyperbole ("颠覆性", "颠覆了什么", "史诗级"). Express trade-offs affirmatively ("不能只盯着……更要深入排查……", "跳出……的局限，转为……") rather than negation antithesis.
    - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, or closing question patterns across answers on the same account.
 
 3. **Hemingway Technical Style (海明威文风硬核技术白描)**:
@@ -124,7 +125,7 @@ sync-skills
 12. **In-Session API Scouting & SPA Navigation (API 极速调研与 SPA 避坑)**:
     - In browser automation via `cmux`, avoid calling blocking `cmux browser goto <url>` on SPA web pages. The CLI command waits for page network-idle / domcontentloaded events, which on Zhihu frequently delay or timeout (>45s) due to background analytics or long-lived polling.
     - Navigate using in-session script evaluation: `eval "location.href = '<url>'; 'ok'\"` to achieve instant (0.1s) redirection.
-    - When scouting potential questions or fetching follower/answer metrics, execute `eval "fetch('/api/v4/search_v3?t=question&q=...').then(r=>r.json())..."` inside the authenticated browser tab. This retrieves structured candidate data and traffic metrics in milliseconds without reloading pages, navigating away, or risking React DOM hydration stalls.
+    - When scouting potential questions or fetching follower/answer metrics, execute `eval "fetch('/api/v4/search_v3?t=question&q=...').then(r=>r.json())...\"` inside the authenticated browser tab. This retrieves structured candidate data and traffic metrics in milliseconds without reloading pages, navigating away, or risking React DOM hydration stalls.
     - In automation scripts spawning child CLI subprocesses (e.g. calling `guard.py` from `engage.py` or `runner.py`), never hardcode `"python3"`. Always use `sys.executable` to guarantee that child processes inherit the validated runtime environment and avoid invoking broken or mismatched system Python wrappers.
 
 13. **CS Fundamentals & Debugging Moat Architecture (计算机底层与排障硬核护城河)**:
@@ -161,12 +162,13 @@ sync-skills
    - Wrap compound statements or loops in code blocks across multiple lines to prevent semicolons and `!=` from inflating sentence count.
    - Mix single-sentence declarations, 2-sentence context, and 3-sentence analyses to satisfy paragraph sentence count diversity (`len(set(counts)) >= 3`).
    - Plant explicit stance vocabulary (`是倒退`, `不推荐`, `坑`, `跑偏`, `没必要`) to ground the engineering verdict.
+   - Include at least 3 concrete anchors matching `SPECIFIC` regex (`\d+(?:\.\d+)?%|\$\d+|\d+[KkMm]?\s*(?:token|美元|美金|次|万|K)|v?\d+\.\d+(?:\.\d+)?|\d{4}\s*年`) to satisfy the specificity gate.
    - Maintain 2,000–6,500 words with H2 headings, code blocks, and 2-3 genuine screenshots.
    - Adhere strictly to the 3-Tier Evidence Standard.
 
 3. **Running Linter**:
    - Execute `python3 scripts/lint.py <draft_path>` and verify dry-run HTML blocks via `injector.py --dry-run`.
-   - Fix all hard-ban violations, excessive bold density (>8%), uniform paragraph lengths, or missing stance markers.
+   - Fix all hard-ban violations, excessive bold density (>8%), uniform paragraph lengths, missing stance markers, or missing specific anchors.
 
 4. **Checking Cadence**:
    - Run `python3 scripts/guard.py check`. Ensure `allowed: true` and current time is outside midnight blackout.
@@ -176,7 +178,8 @@ sync-skills
    - Use `location.href` via eval rather than blocking CLI `goto` for SPA navigation.
    - If `zse-ck` loading state is encountered, observe the mandatory 25-minute quiet period before retrying.
    - Verify comment/thought submissions via platform API (`/api/v4/comment_v5/...`).
-   - Log timestamp: `python3 scripts/guard.py record-answer`.\n
+   - Log timestamp: `python3 scripts/guard.py record-answer`.
+
 6. **Synchronize Skill Updates**:
    - When modifying rules, scripts, or references, changes are automatically pushed to GitHub by `com.kite.skill-github-sync` daemon upon test pass, or via `sync-skills`.
 
@@ -186,7 +189,10 @@ sync-skills
 - **Do not make paragraph sentence lengths uniform**: Having only 1-sentence or only two distinct paragraph lengths triggers `§5 段落句数几乎全为 X 句，结构过于整齐`. You must interleave 1-sentence, 2-sentence, and 3-sentence paragraphs so that `len(set(counts)) >= 3`.
 - **Do not use more than 5 subheadings**: Having `> 5` H2/H3 headers triggers `§5 小标题 >5 骨架感强`. Group sub-points under bold inline lead-ins (`**核心死穴一：...**`) rather than `###` subheadings.
 - **Do not omit stance words in technical explanations**: Without explicit stance vocabulary (`是倒退`, `不推荐`, `坑`, `跑偏`, `没必要`), `lint.py` warns for lack of clear stance. Always declare an unambiguous engineering verdict.
-- **Do not use buzzwords like '碾压' or '颠覆性'**: Triggers marketing jargon and hyperbole bans in `lint.py`. Use objective phrases like '显著领先', '巨大性能分歧', '架构破局'.
+- **Do not omit concrete version/scale anchors**: A pure conceptual answer without at least 3 specific anchors (`vX.Y`, `\d+%`, `\d+ 万`, `\d{4} 年`) triggers `§3 具体数字/版本/时间仅 X 处（目标 ≥3）`. Explicitly cite exact engine versions, testing years, or percentage benchmarks.
+- **Do not use contrastive negation like '不是A而是B'**: Even innocent phrases like '核心指标不是慢日志，而是Undo链' trigger `[FAIL] §2 不是A而是B`. Express trade-offs affirmatively without the contrast particle.
+- **Do not use words containing '颠覆'**: '颠覆了传统认知' or '颠覆性' triggers the hyperbole hard-ban. Use '机制革新' or '架构重构'.
+- **Do not use buzzwords like '碾压'**: Triggers marketing jargon and hyperbole bans in `lint.py`. Use objective phrases like '显著领先', '性能分歧'.
 - **Do not use the word '闭环' even in technical contexts**: Triggers marketing jargon hard-ban in `lint.py`. Use '自洽确认' or '调度体系'.
 - **Do not post pure anxiety without concrete solutions**: Pure venting or doom-mongering earns impressions but zero bookmarks and kills consulting credibility. Always anchor anxiety topics with reproducible terminal commands, test assertions, or architecture diagrams.
 - **Do not drift into non-technical verticals**: Mixing parenting, general lifestyle, or HR resume tropes into a developer account shatters account topic clustering and drives away core technical followers.
