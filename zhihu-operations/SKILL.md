@@ -1,7 +1,7 @@
 ---
 name: zhihu-operations
 description: "Operate Zhihu technical answers, anti-AI lint and cadence."
-version: 1.10.0
+version: 1.11.0
 author: 秋安 (ciyuan1234), Hermes Agent
 license: MIT
 platforms: [linux, macos, windows]
@@ -68,12 +68,12 @@ sync-skills
 
 2. **Developer Voice & Anti-AI Standard**:
    - **Golden First 100 Words**: Deliver the direct verdict and first-hand stance immediately. State the testing environment, tool version, and concrete outcome within the first 3 sentences. No philosophical lead-ins.
-   - **Micro-Paragraphs & Semicolon / Code Punctuation Pitfall**: Keep paragraphs under 3 sentences. `lint.py` treats semicolons (`；;`) and exclamation marks (`!！？`) as sentence terminators across raw markdown without stripping code blocks or inline backticks. Avoid semicolons in text lists. In code blocks, wrap multi-clause statements across multiple lines so no single line exceeds 2 punctuation splits, otherwise `sentences()` registers >3 sentences and triggers `[WARN] §4 最长段落 >3 句`.
+   - **Micro-Paragraphs & Single-Newline Markdown Linebreak Pitfall**: Keep paragraphs under 3 sentences. `lint.py` treats semicolons (`；;`) and exclamation marks (`!！？`) as sentence terminators across raw markdown without stripping code blocks or inline backticks. Avoid semicolons in text lists. In code blocks, wrap multi-clause statements across multiple lines. **Critical Linter Parsing Rule**: `lint.py` splits paragraphs via `text.split("\n")` (single newline), NOT `\n\n`. If a draft soft-wraps sentences with `\n` inside a paragraph, each line is parsed as an independent 1-sentence paragraph, triggering `[WARN] §5 段落句数几乎全为 1 句，结构过于整齐`. Markdown paragraphs must be formatted as single continuous strings without embedded newlines, separated strictly by blank lines (`\n\n`).
    - **Paragraph Sentence Count Diversity Gate (`len(set(counts)) >= 3`)**: While paragraphs must stay `<= 3` sentences, making all paragraphs 1 sentence or having only two distinct paragraph lengths triggers `[WARN] §5 段落句数几乎全为 X 句，结构过于整齐` (template monotony). Interleave 1-sentence punchy claims, 2-sentence technical context, and 3-sentence analytical paragraphs so that `set(counts)` contains at least 3 distinct integers (e.g. `{1, 2, 3}`).
    - **Subheading Hierarchy Compression**: Cap H2/H3 subheadings at `<= 5` across the entire answer (e.g. `## 一` to `## 五`). More than 5 subheadings triggers `[WARN] §5 小标题 >5 骨架感强`. When decomposing sub-points, use bold inline lead-ins (`**核心死穴一：...**`) rather than `###` subheadings.
    - **Definitive Stance Gate**: Include clear evaluative stance words (specifically from the linter whitelist: `是倒退`, `不推荐`, `慎买`, `别买`, `没必要`, `不划算`, `最贵`, `坑`, `跑偏`, `不够`, `不诚实`, `最强`, `天花板`). Answers lacking these trigger `[WARN] §3 未检测到明确立场词，检查是否以「各有优劣」收尾`.
    - **Concrete Specificity & Version Anchors Gate (`§3 具体数字/版本/时间 ≥ 3`)**: Answers must include at least 3 verified, concrete anchors matching `SPECIFIC` regex (`\d+(?:\.\d+)?%|\$\d+|\d+[KkMm]?\s*(?:token|美元|美金|次|万|K)|v?\d+\.\d+(?:\.\d+)?|\d{4}\s*年`)—such as specific library/engine versions (`v8.0`, `MySQL 8.0.36`), testing years (`2026 年`), percentages (`95%`), or scale metrics (`10 万次`).
-   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天", "在...的今天"), marketing jargon (strictly ban "闭环", "底层逻辑", "颗粒度", "赋能", "降维打击", "碾压", "心智负担"), hyperbole ("颠覆性", "颠覆了什么", "史诗级"), and pseudo-philosophical AI template phrases (strictly ban `微观物理真相|物理真相|铁血契约|工业级军规|阿喀琉斯之踵|判决四重奏|教科书式谎言|全行业讨论频次最高|基石底座`). Express trade-offs affirmatively ("不能只盯着……更要深入排查……", "跳出……的局限，转为……") rather than negation antithesis.
+   - **Absolute Phrase Bans**: Ban rhetorical binary contrasts ("不是A而是B", "并非……而是……"), mechanical transition labels ("首先/其次/最后", "总而言之"), platform clichés ("作为一名程序员", "在AI飞速发展的今天", "在...的今天"), marketing jargon (strictly ban "闭环", "底层逻辑", "颗粒度", "赋能", "降维打击", "碾压", "心智负担"), hyperbole ("颠覆性", "颠覆了什么", "史诗级"), adulatory praise words (strictly ban `至关重要|举足轻重|不可或缺` under `§2 溢美`), and pseudo-philosophical AI template phrases (strictly ban `微观物理真相|物理真相|铁血契约|工业级军规|阿喀琉斯之踵|判决四重奏|教科书式谎言|全行业讨论频次最高|基石底座`). Express trade-offs affirmatively ("不能只盯着……更要深入排查……", "跳出……的局限，转为……") rather than negation antithesis.
    - **Cross-Answer Deduplication & Fingerprinting**: Never reuse identical opening formulas ("日期 + 先说结论"), benchmark values, formulaic comment structures, or closing question patterns across answers on the same account.
 
 3. **Topic Quarantine & AI Batch-Generation Risk Gate (选题避险与防批量AI归因门禁)**:
@@ -133,6 +133,7 @@ sync-skills
     - Navigate using in-session script evaluation: `eval "location.href = '<url>'; 'ok'\"` to achieve instant redirection.
     - Scout questions or metrics by evaluating `fetch('/api/v4/search_v3?t=question&q=...')` directly inside the authenticated browser tab.
     - In automation scripts spawning child CLI subprocesses, never hardcode `python3`. Always use `sys.executable`.
+    - **Surface Isolation & Deep Administrative URL Avoidance**: Never navigate the active runner browser tab away from standard domain URLs (like `https://www.zhihu.com/`) to deep internal administrative or moderation URLs (such as `/community/messages/...`). Internal administrative routes can drop frontend authentication context and redirect the surface to `/signin`, causing background runner operations to stall.
 
 14. **CS Fundamentals & Debugging Moat Architecture (计算机底层与排障硬核护城河)**:
     - Expand into evergreen CS fundamentals (Operating Systems, Computer Organization, Networks, and Debugging methodologies) targeting high-follower questions.
@@ -161,6 +162,7 @@ sync-skills
 2. **Drafting Answer**:
    - Open with the Golden First 100 Words: direct verdict, version, environment.
    - Apply Hemingway technical prose: lean declarative sentences, cold physical/terminal realism, micro-paragraphs (<=3 sentences), zero corporate buzzwords.
+   - Keep each paragraph formatted as a single continuous line without internal `\n` linebreaks, separated strictly by blank lines (`\n\n`).
    - Cap subheadings at `<= 5` to avoid rigid outline feel; use bold lead-in phrases (`**核心死穴一：...**`) for sub-points.
    - Avoid semicolons inside lists or explanations to prevent accidental sentence splitting in linting.
    - Wrap compound statements or loops in code blocks across multiple lines to prevent semicolons and `!=` from inflating sentence count.
@@ -189,6 +191,9 @@ sync-skills
 
 ## Pitfalls
 
+- **Do not soft-wrap markdown lines within paragraphs with `\n`**: `lint.py` parses paragraphs by splitting on single `\n`. Internal line breaks turn a single paragraph into multiple 1-sentence pseudo-paragraphs, immediately triggering `§5 段落句数几乎全为 1 句，结构过于整齐`. Format each paragraph as a single continuous string.
+- **Do not write words like '不可或缺' or '至关重要'**: Triggers `§2 溢美` hard ban in `lint.py`. Use objective technical terminology like `基本前提` or `核心前提`.
+- **Do not navigate the active runner browser tab to deep internal message routes**: Navigating directly to `/community/messages/...` or admin paths can break session context and redirect to `/signin`, stalling background automated execution.
 - **Do not write one-line loops with semicolons and `!=` in code blocks**: `lint.py` treats raw markdown lines inside code fences as paragraphs and splits on `[。！？!?；;]`. Wrap loop clauses across multiple lines.
 - **Do not make paragraph sentence lengths uniform**: Having only 1-sentence or only two distinct paragraph lengths triggers `§5 段落句数几乎全为 X 句，结构过于整齐`. You must interleave 1-sentence, 2-sentence, and 3-sentence paragraphs so that `len(set(counts)) >= 3`.
 - **Do not use more than 5 subheadings**: Having `> 5` H2/H3 headers triggers `§5 小标题 >5 骨架感强`. Group sub-points under bold inline lead-ins (`**核心死穴一：...**`) rather than `###` subheadings.
